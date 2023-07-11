@@ -1,5 +1,5 @@
 'use client'
-
+// Implementing search functionality
 import { useState, useEffect } from 'react';
 
 import PromptCard from './PromptCard';
@@ -20,10 +20,34 @@ const PromptCardList = ({ data, handleTagClick }) => {
 
 const Feed = () => {
   const [searchText, setSearchText] = useState('');
+  const [searchTimeout,setSearchTimeout] = useState(null);
+  const [searchedResult,setSearchedResult] = useState([]);
   const [posts,setPosts] = useState([]);
 
-  const handleSearchChange = (e) => {
+  const filterPrompts = (searchtext) => {
+    const regex = new RegExp(searchtext, "i"); // 'i' flag for case-insensitive search
+    return posts.filter(
+      (item) =>
+        regex.test(item.creator.username) ||
+        regex.test(item.tag) ||
+        regex.test(item.prompt)
+    );
+  };
 
+  const handleSearchChange = (e) => {
+    clearTimeout(searchTimeout);
+    setSearchText(e.target.value);
+
+    setSearchTimeout(()=>{
+      const searchResult = filterPrompts(e.target.value);
+      setSearchedResult(searchResult);
+    },5009)
+  }
+
+  const handleTag = (tagName)=>{
+    setSearchText(tagName);
+    const searchTag = filterPrompts(tagName);
+    setSearchedResult(searchTag);
   }
 
   useEffect(()=>{
@@ -48,11 +72,20 @@ const Feed = () => {
       className = "search_input peer"
      />
     </form>
-   
-    <PromptCardList 
-      data = {posts}
-      handleTagClick={()=>{}}
+
+    {searchText ? (
+      <PromptCardList 
+      data = {searchedResult}
+      handleTagClick={handleTag}
     />
+    ) : (
+      <PromptCardList 
+      data = {posts}
+      handleTagClick={handleTag}
+    />
+    )}
+   
+    
    </section>
   )
 }
